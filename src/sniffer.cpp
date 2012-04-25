@@ -10,8 +10,7 @@
 #include <linux/if_packet.h>
 #include <linux/if_ether.h>
 #include <netinet/in.h>
-
-#include "headers-structs.cpp"
+#include <unistd.h>
 
 void process_packet(unsigned char *, int);
 void print_tcp_packet(unsigned char* , int);
@@ -25,14 +24,16 @@ int data_size;
 unsigned int saddr_size;
 struct sockaddr saddr;
 struct in_addr in;
-unsigned char buffer[8192*2];
+unsigned char buffer[8192 * 2];
 int fd;
-
-int tcp=0,udp=0,icmp=0,others=0,igmp=0,total=0,i,j;
-
-struct sockaddr_in source,dest;
+struct sockaddr_in source, dest;
 
 int main(int argc, char *argv[]) {
+
+	if (getuid() != 0) {
+		fprintf(stderr, "%s: root privelidges needed\n", *(argv + 0));
+		exit(EXIT_FAILURE);
+	}
 
 
 	logfile=fopen("log.txt","a");
@@ -64,12 +65,12 @@ void process_packet(unsigned char * buffer, int size){
 	++total_packets;
 	printf("total packets: %d\n", total_packets);
 	struct iphdr *iph = (struct iphdr*)buffer;
-	//switch(iph->protocol){
-	//case 6:
+	switch(iph->protocol){
+	case 6:
 		++tcp_count;
 		print_tcp_packet(buffer , size);
-	//	break;
-	//}
+		break;
+	}
 }
 
 void print_ip_header(unsigned char* buffer, int size){
@@ -84,19 +85,15 @@ void print_ip_header(unsigned char* buffer, int size){
 	memset(&dest, 0, sizeof(dest));
 	dest.sin_addr.s_addr = iph->daddr;
 
-	//fprintf(logfile,"\n");
-	//fprintf(logfile,"IP Header\n");
-	//fprintf(logfile,"   |-IP Version        : %d\n",(unsigned int)iph->version);
-	//fprintf(logfile,"   |-IP Header Length  : %d DWORDS or %d Bytes\n",(unsigned int)iph->ihl,((unsigned int)(iph->ihl))*4);
-	//fprintf(logfile,"   |-Type Of Service   : %d\n",(unsigned int)iph->tos);
-	//fprintf(logfile,"   |-IP Total Length   : %d  Bytes(Size of Packet)\n",ntohs(iph->tot_len));
-	//fprintf(logfile,"   |-Identification    : %d\n",ntohs(iph->id));
-	//fprintf(logfile,"   |-TTL      : %d\n",(unsigned int)iph->ttl);
-	//fprintf(logfile,"   |-Protocol : %d\n",(unsigned int)iph->protocol);
-	//fprintf(logfile,"   |-Checksum : %d\n",ntohs(iph->check));
-	//fprintf(logfile,"   |-Source IP        : %s\n",inet_ntoa(source.sin_addr));
-	//fprintf(logfile,"   |-Destination IP   : %s\n",inet_ntoa(dest.sin_addr));
-	fprintf(logfile, "%s\t%s\t%d\n", inet_ntoa(source.sin_addr), inet_ntoa(dest.sin_addr), (unsigned int)iph->ttl);
+	//IP Version        : %d\n",(unsigned int)iph->version
+	//IP Header Length  : %d DWORDS or %d Bytes\n",(unsigned int)iph->ihl,((unsigned int)(iph->ihl))*4
+	//Type Of Service   : %d\n",(unsigned int)iph->tos
+	//IP Total Length   : %d  Bytes(Size of Packet)\n",ntohs(iph->tot_len)
+	//Identification    : %d\n",ntohs(iph->id)
+	//Protocol : %d\n",(unsigned int)iph->protocol
+	//Checksum : %d\n",ntohs(iph->check)
+
+	fprintf(logfile, "%s\t%s\t%d\n", inet_ntoa(source.sin_addr), inet_ntop(dest.sin_addr), (unsigned int)iph->ttl);
 
 
 
