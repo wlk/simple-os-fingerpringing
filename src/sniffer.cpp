@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 
 
 
-	fd = socket(PF_INET, SOCK_RAW, IPPROTO_TCP);
+	fd = socket(PF_INET, SOCK_RAW, IPPROTO_TCP); //przerobić żeby było TCP i UDP
 	if(fd < 0){
 		printf("Socket creation errro");
 		return 1;
@@ -93,6 +93,7 @@ void print_ip_header(unsigned char* buffer, int size){
 	//Protocol : %d\n",(unsigned int)iph->protocol
 	//Checksum : %d\n",ntohs(iph->check)
 
+	//dodać żeby logował S_PORT, D_PORT, PROTOCOL
 	fprintf(logfile, "%s\t%s\t%d\n", inet_ntoa(source.sin_addr), inet_ntop(dest.sin_addr), (unsigned int)iph->ttl);
 
 
