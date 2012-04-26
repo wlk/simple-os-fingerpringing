@@ -75,9 +75,13 @@ void process_packet(unsigned char * buffer, int size){
 
 void print_ip_header(unsigned char* buffer, int size){
 	unsigned short ip_header_length;
+	
+	struct ethhdr *ethernet_header;
+	struct tcphdr *tcp_header;
 	struct iphdr *iph = (struct iphdr *)buffer;
+	
 	ip_header_length =iph->ihl*4;
-
+	tcp_header = (struct tcphdr*) (buffer + sizeof(struct ethhdr)+ ip_header->ihl * 4); // Do sprawdzenia
 
 	memset(&source, 0, sizeof(source));
 	source.sin_addr.s_addr = iph->saddr;
